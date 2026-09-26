@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Freshers' Party 2026 — Contribution Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#171233; --bg2:#20183f; --card:#241a49;
+    --gold:#F2B705; --coral:#FF6F59; --text:#F5F3FA; --muted:#B7AEDA;
+    --line:rgba(245,243,250,.14);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:inherit;}
+  html,body{height:100%;margin:0;}
+  body{
+    background:radial-gradient(circle at 20% 0%, var(--bg2), var(--bg) 60%);
+    color:var(--text); font-family:'Inter',sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100%; padding:32px 16px;
+  }
+  h1,h2{font-family:'Fraunces',serif; margin:0 0 6px;}
+  .wrap{width:100%; max-width:460px;}
+  .wrap:has(#certCard:not(.hidden)){max-width:780px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:28px; position:relative; overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:5px;
+    background:linear-gradient(90deg,var(--gold),var(--coral));
+  }
+  .eyebrow{color:var(--gold); font-weight:600; font-size:.85rem; letter-spacing:.02em;}
+  h1{font-size:1.6rem; margin-top:2px;}
+  .sub{color:var(--muted); font-size:.92rem; margin-bottom:22px; line-height:1.5;}
+  label{display:block; font-size:.85rem; font-weight:600; margin:16px 0 6px; color:var(--muted);}
+  input[type=text], input[type=number], select{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line);
+    background:rgba(0,0,0,.18); color:var(--text); font-size:1rem; font-family:inherit;
+  }
+  input:focus, select:focus, button:focus{outline:2px solid var(--gold); outline-offset:2px;}
+  .file-drop{
+    border:1.5px dashed var(--line); border-radius:10px; padding:16px; text-align:center;
+    cursor:pointer; color:var(--muted); font-size:.9rem;
+  }
+  .file-drop.has-img{border-style:solid; border-color:var(--gold);}
+  #proofPreview{max-width:100%; max-height:160px; border-radius:8px; margin-top:10px; display:none;}
+  .radio-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .radio-row label.opt{
+    flex:1 1 auto; margin:0; padding:10px 8px; text-align:center; border-radius:10px;
+    border:1px solid var(--line); background:rgba(0,0,0,.18); font-weight:600; font-size:.9rem;
+    cursor:pointer; color:var(--text);
+  }
+  .radio-row input{position:absolute; opacity:0; pointer-events:none;}
+  .radio-row input:checked + label.opt{background:var(--gold); color:#241a49; border-color:var(--gold);}
+  .radio-row label.opt{position:relative;}
+  button.primary{
+    width:100%; margin-top:22px; padding:14px; border:none; border-radius:12px;
+    background:linear-gradient(90deg,var(--coral),var(--gold)); color:#1d1433; font-weight:700;
+    font-size:1rem; cursor:pointer; font-family:inherit;
+  }
+  button.secondary{
+    width:100%; margin-top:10px; padding:12px; border-radius:12px; font-weight:600;
+    background:transparent; color:var(--text); border:1px solid var(--line); cursor:pointer; font-family:inherit;
+  }
+  button.wa{background:#25D366; color:#0b2318; border:none;}
+  .err{color:var(--coral); font-size:.85rem; margin-top:8px; min-height:1em;}
+  #certCanvas{width:100%; border-radius:12px; margin-top:16px; display:block; background:#171233; box-shadow:0 14px 32px rgba(0,0,0,.24);}
+  #certCard{padding:32px;}
+  #certCard .sub{max-width:560px;}
+  .hidden{display:none !important;}
+  .foot{text-align:center; color:var(--muted); font-size:.78rem; margin-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <div class="eyebrow">Access required</div>
+    <h1>Freshers' Party 2026</h1>
+    <div class="sub">Enter the shared login to open the contribution form.</div>
+    <label for="user">Username</label>
+    <input type="text" id="user" autocomplete="off">
+    <label for="pass">Password</label>
+    <input type="text" id="pass" autocomplete="off">
+    <div class="err" id="loginErr"></div>
+    <button class="primary" onclick="tryLogin()">Unlock form</button>
+  </div>
+
+  <!-- FORM -->
+  <div class="card hidden" id="formCard">
+    <div class="eyebrow">Freshers' Party 2026</div>
+    <h1>Contribution form</h1>
+    <div class="sub">Fill this in once your payment is done. You'll get an acknowledgement certificate right after.</div>
+
+    <label for="name">Student name</label>
+    <input type="text" id="name" placeholder="Full name">
+
+    <label for="roll">Roll number</label>
+    <input type="text" id="roll" placeholder="e.g. CS2026-014">
+
+    <label for="amount">Amount paid (₹)</label>
+    <input type="number" id="amount" placeholder="e.g. 500" min="1">
+
+    <label>Cash / payment handed to</label>
+    <div class="radio-row" id="handoverRow">
+      <input type="radio" name="handover" id="h-abhijit" value="Abhijit"><label class="opt" for="h-abhijit">Abhijit</label>
+      <input type="radio" name="handover" id="h-durgesh" value="Durgesh"><label class="opt" for="h-durgesh">Durgesh</label>
+      <input type="radio" name="handover" id="h-aditya" value="Aditya"><label class="opt" for="h-aditya">Aditya</label>
+    </div>
+
+    <label>Party attendance</label>
+    <div class="radio-row" id="attendanceRow">
+      <input type="radio" name="attendance" id="attending" value="Attending"><label class="opt" for="attending">Attending</label>
+      <input type="radio" name="attendance" id="not-attending" value="Not attending"><label class="opt" for="not-attending">Not attending</label>
+    </div>
+
+    <label for="proofInput">Payment proof (screenshot / cash receipt photo)</label>
+    <div class="file-drop" id="fileDrop" onclick="document.getElementById('proofInput').click()">
+      Tap to upload an image
+      <img id="proofPreview">
+    </div>
+    <input type="file" id="proofInput" accept="image/*" class="hidden" onchange="onFile(event)">
+
+    <div class="err" id="formErr"></div>
+    <button class="primary" onclick="submitForm()">Submit & get certificate</button>
+  </div>
+
+  <!-- CERTIFICATE -->
+  <div class="card hidden" id="certCard">
+    <div class="eyebrow">Submitted</div>
+    <h1>Your acknowledgement</h1>
+    <div class="sub">Keep this certificate — it's your proof of contribution.</div>
+    <canvas id="certCanvas" width="1200" height="820"></canvas>
+    <button class="primary" onclick="downloadCert()">Download certificate</button>
+    <button class="secondary wa" onclick="shareWhatsapp()">Share on WhatsApp</button>
+    <button class="secondary" onclick="resetForm()">Submit another response</button>
+  </div>
+
+  <div class="foot">Freshers' Party CS 2026</div>
+</div>
+
+<script>
+const CREDS = { user: "frehserscs2026", pass: "Abhi@Adi@Dogu2026" };
+let proofDataUrl = null;
+let lastCert = null;
+
+function tryLogin(){
+  const u = document.getElementById('user').value.trim();
+  const p = document.getElementById('pass').value;
+  if(u === CREDS.user && p === CREDS.pass){
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('formCard').classList.remove('hidden');
+  } else {
+    document.getElementById('loginErr').textContent = "Incorrect username or password.";
+  }
+}
+
+function onFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    proofDataUrl = reader.result;
+    const img = document.getElementById('proofPreview');
+    img.src = proofDataUrl;
+    img.style.display = 'block';
+    document.getElementById('fileDrop').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitForm(){
+  const name = document.getElementById('name').value.trim();
+  const roll = document.getElementById('roll').value.trim();
+  const amount = document.getElementById('amount').value.trim();
+  const handover = document.querySelector('input[name=handover]:checked');
+  const attendance = document.querySelector('input[name=attendance]:checked');
+  const err = document.getElementById('formErr');
+
+  if(!name || !roll || !amount || !handover || !attendance || !proofDataUrl){
+    err.textContent = "Please fill every field and attach a payment proof image.";
+    return;
+  }
+  err.textContent = "";
+
+  const refId = "FP26-" + Math.random().toString(36).slice(2,7).toUpperCase();
+  const date = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+
+  lastCert = {name, roll, amount, handedTo: handover.value, attendance: attendance.value, refId, date};
+  drawCertificate(lastCert);
+
+  document.getElementById('formCard').classList.add('hidden');
+  document.getElementById('certCard').classList.remove('hidden');
+}
+
+function drawCertificate(c){
+  const cv = document.getElementById('certCanvas');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#20183f"; ctx.fillRect(0,0,W,H);
+  const grad = ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,"#FF6F59"); grad.addColorStop(.55,"#F2B705"); grad.addColorStop(1,"#FF6F59");
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,14);
+
+  ctx.strokeStyle = "rgba(245,243,250,.28)"; ctx.lineWidth = 2;
+  ctx.strokeRect(34,34,W-68,H-68);
+  ctx.strokeStyle = "rgba(242,183,5,.55)"; ctx.lineWidth = 1;
+  ctx.strokeRect(48,48,W-96,H-96);
+
+  ctx.fillStyle = "#F2B705";
+  ctx.font = "700 20px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("ACKNOWLEDGEMENT OF PAYMENT", W/2, 112);
+
+  ctx.fillStyle = "#F5F3FA";
+  ctx.font = "700 48px Georgia, serif";
+  ctx.fillText("Freshers' Party 2026", W/2, 174);
+
+  ctx.font = "400 18px Inter, sans-serif";
+  ctx.fillStyle = "#B7AEDA";
+  ctx.fillText("This certifies that the contribution below has been received.", W/2, 212);
+
+  const rows = [
+    ["Student name", c.name],
+    ["Roll number", c.roll],
+    ["Amount received", "₹ " + c.amount],
+    ["Received by", c.handedTo],
+    ["Attendance", c.attendance],
+    ["Date", c.date],
+    ["Reference ID", c.refId]
+  ];
+  ctx.fillStyle = "rgba(0,0,0,.16)";
+  ctx.fillRect(78, 252, W - 156, 460);
+  let y = 292;
+  ctx.textAlign = "left";
+  rows.forEach(([label,val])=>{
+    ctx.fillStyle = "#B7AEDA";
+    ctx.font = "700 15px Inter, sans-serif";
+    ctx.fillText(label.toUpperCase(), 112, y);
+    ctx.fillStyle = "#F5F3FA";
+    ctx.font = "600 24px Inter, sans-serif";
+    ctx.fillText(val, 112, y+34);
+    y += 62;
+  });
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#B7AEDA";
+  ctx.font = "400 15px Inter, sans-serif";
+  ctx.fillText("Generated automatically on form submission | Freshers' Party CS 2026", W/2, H-50);
+}
+
+function downloadCert(){
+  const cv = document.getElementById('certCanvas');
+  if(!lastCert) return;
+  const filename = (lastCert.refId || "certificate") + "-acknowledgement.png";
+  const link = document.createElement('a');
+  link.download = filename;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.href = cv.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function shareWhatsapp(){
+  const c = lastCert;
+  const msg = `Freshers' Party 2026 – Payment submitted\nName: ${c.name}\nRoll No: ${c.roll}\nAmount: ₹${c.amount}\nHanded to: ${c.handedTo}\nAttendance: ${c.attendance}\nRef: ${c.refId}\n(Download the certificate image and attach it here.)`;
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+
+function resetForm(){
+  document.getElementById('name').value = "";
+  document.getElementById('roll').value = "";
+  document.getElementById('amount').value = "";
+  document.querySelectorAll('input[name=handover]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[name=attendance]').forEach(r => r.checked = false);
+  document.getElementById('proofInput').value = "";
+  document.getElementById('proofPreview').style.display = 'none';
+  document.getElementById('fileDrop').classList.remove('has-img');
+  proofDataUrl = null;
+  document.getElementById('certCard').classList.add('hidden');
+  document.getElementById('formCard').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
