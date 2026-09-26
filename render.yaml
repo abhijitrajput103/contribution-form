@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: freshers-party-2026
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: freshers_party_2026
