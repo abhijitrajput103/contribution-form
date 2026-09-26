@@ -74,6 +74,11 @@
   #certCanvas{width:100%; border-radius:12px; margin-top:16px; display:block; background:#171233; box-shadow:0 14px 32px rgba(0,0,0,.24);}
   #certCard{padding:32px;}
   #certCard .sub{max-width:560px;}
+  .record-list{display:grid; gap:10px; margin:18px 0 0; max-height:420px; overflow:auto;}
+  .record-item{padding:14px; border:1px solid var(--line); border-radius:10px; background:rgba(0,0,0,.16);}
+  .record-item strong{display:block; color:var(--text); margin-bottom:4px;}
+  .record-item span{display:block; color:var(--muted); font-size:.82rem; line-height:1.5;}
+  .empty-records{color:var(--muted); font-size:.9rem; margin:18px 0 0;}
   .hidden{display:none !important;}
   .foot{text-align:center; color:var(--muted); font-size:.78rem; margin-top:16px;}
 </style>
@@ -131,6 +136,7 @@
 
     <div class="err" id="formErr"></div>
     <button class="primary" onclick="submitForm()">Submit & get certificate</button>
+    <button class="secondary" onclick="showRecords()">View saved acknowledgements</button>
   </div>
 
   <!-- CERTIFICATE -->
@@ -141,7 +147,18 @@
     <canvas id="certCanvas" width="1200" height="820"></canvas>
     <button class="primary" onclick="downloadCert()">Download certificate</button>
     <button class="secondary wa" onclick="shareWhatsapp()">Share on WhatsApp</button>
+    <button class="secondary" onclick="showRecords()">View all saved acknowledgements</button>
     <button class="secondary" onclick="resetForm()">Submit another response</button>
+  </div>
+
+  <!-- RECORDS -->
+  <div class="card hidden" id="recordsCard">
+    <div class="eyebrow">Local register</div>
+    <h1>Saved acknowledgements</h1>
+    <div class="sub">These records are stored in this browser on this device.</div>
+    <div class="record-list" id="recordList"></div>
+    <button class="primary" onclick="exportRecords()">Export records (CSV)</button>
+    <button class="secondary" onclick="backToForm()">Back to form</button>
   </div>
 
   <div class="foot">Freshers' Party CS 2026</div>
@@ -149,6 +166,7 @@
 
 <script>
 const CREDS = { user: "frehserscs2026", pass: "Abhi@Adi@Dogu2026" };
+const API_BASE = location.protocol === "file:" ? "http://localhost:3000" : "";
 let proofDataUrl = null;
 let lastCert = null;
 
@@ -177,7 +195,7 @@ function onFile(e){
   reader.readAsDataURL(file);
 }
 
-function submitForm(){
+async function submitForm(){
   const name = document.getElementById('name').value.trim();
   const roll = document.getElementById('roll').value.trim();
   const amount = document.getElementById('amount').value.trim();
@@ -195,10 +213,80 @@ function submitForm(){
   const date = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
 
   lastCert = {name, roll, amount, handedTo: handover.value, attendance: attendance.value, refId, date};
+  try{
+    await saveRecord(lastCert);
+  }catch(e){
+    err.textContent = "Could not save this acknowledgement. Start the server and try again.";
+    return;
+  }
   drawCertificate(lastCert);
 
   document.getElementById('formCard').classList.add('hidden');
   document.getElementById('certCard').classList.remove('hidden');
+}
+
+async function getRecords(){
+  const response = await fetch(`${API_BASE}/api/acknowledgements`);
+  if(!response.ok) throw new Error("Records could not be fetched");
+  return response.json();
+}
+
+async function saveRecord(record){
+  const response = await fetch(`${API_BASE}/api/acknowledgements`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(record)
+  });
+  if(!response.ok) throw new Error("Record could not be saved");
+}
+
+async function showRecords(){
+  const list = document.getElementById('recordList');
+  list.innerHTML = '<div class="empty-records">Loading records...</div>';
+  document.getElementById('formCard').classList.add('hidden');
+  document.getElementById('certCard').classList.add('hidden');
+  document.getElementById('recordsCard').classList.remove('hidden');
+  try{
+    const records = (await getRecords()).reverse();
+    list.innerHTML = records.length ? records.map(record => `
+    <div class="record-item">
+      <strong>${escapeHtml(record.name)} · ${escapeHtml(record.roll)}</strong>
+      <span>₹${escapeHtml(record.amount)} · ${escapeHtml(record.attendance)} · Received by ${escapeHtml(record.handedTo)}</span>
+      <span>${escapeHtml(record.date)} · Ref: ${escapeHtml(record.refId)}</span>
+    </div>`).join('') : '<div class="empty-records">No acknowledgements have been saved yet.</div>';
+  }catch(e){
+    list.innerHTML = '<div class="empty-records">Could not load records. Check the server connection.</div>';
+  }
+}
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>'"]/g, character => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'
+  }[character]));
+}
+
+async function exportRecords(){
+  let records;
+  try{
+    records = await getRecords();
+  }catch(e){
+    return;
+  }
+  if(!records.length) return;
+  const headers = ["Student name", "Roll number", "Amount", "Received by", "Attendance", "Date", "Reference ID"];
+  const rows = records.map(record => [record.name, record.roll, record.amount, record.handedTo, record.attendance, record.date, record.refId]);
+  const csv = [headers, ...rows].map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  link.download = 'freshers-party-2026-acknowledgements.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function backToForm(){
+  document.getElementById('recordsCard').classList.add('hidden');
+  document.getElementById('formCard').classList.remove('hidden');
 }
 
 function drawCertificate(c){
