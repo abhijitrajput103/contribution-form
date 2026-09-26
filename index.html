@@ -165,19 +165,27 @@
 </div>
 
 <script>
-const CREDS = { user: "frehserscs2026", pass: "Abhi@Adi@Dogu2026" };
 const API_BASE = location.protocol === "file:" ? "http://localhost:3000" : "";
+let authToken = null;
 let proofDataUrl = null;
 let lastCert = null;
 
-function tryLogin(){
+async function tryLogin(){
   const u = document.getElementById('user').value.trim();
   const p = document.getElementById('pass').value;
-  if(u === CREDS.user && p === CREDS.pass){
+  const err = document.getElementById('loginErr');
+  try{
+    const response = await fetch(`${API_BASE}/api/login`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username: u, password: p})
+    });
+    if(!response.ok) throw new Error("Login failed");
+    authToken = (await response.json()).token;
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('formCard').classList.remove('hidden');
-  } else {
-    document.getElementById('loginErr').textContent = "Incorrect username or password.";
+  }catch(e){
+    err.textContent = "Incorrect username or password.";
   }
 }
 
@@ -226,7 +234,7 @@ async function submitForm(){
 }
 
 async function getRecords(){
-  const response = await fetch(`${API_BASE}/api/acknowledgements`);
+  const response = await fetch(`${API_BASE}/api/acknowledgements`, {headers: authHeaders()});
   if(!response.ok) throw new Error("Records could not be fetched");
   return response.json();
 }
@@ -234,10 +242,14 @@ async function getRecords(){
 async function saveRecord(record){
   const response = await fetch(`${API_BASE}/api/acknowledgements`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {...authHeaders(), "Content-Type": "application/json"},
     body: JSON.stringify(record)
   });
   if(!response.ok) throw new Error("Record could not be saved");
+}
+
+function authHeaders(){
+  return authToken ? {Authorization: `Bearer ${authToken}`} : {};
 }
 
 async function showRecords(){
